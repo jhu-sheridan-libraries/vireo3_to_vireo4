@@ -1,0 +1,13 @@
+
+#ruby SaveManagedConfig.rb
+
+ruby MigrateInit1.rb > init1.log
+ruby MigrateOrg2.rb > org2.log
+ruby MigrateUsers3.rb > users3.log
+ruby MigrateVocabularyWord4.rb > vocab4.log
+ruby MigrateSubmission5.rb > submission5.log
+ruby MigrateActionLog6.rb > actionlog6.log
+ruby MigrateCustomActions7.rb > customactions7.log
+ruby MigrateFinal8.rb > final8.log
+
+ruby RestoreManagedConfig.rb
