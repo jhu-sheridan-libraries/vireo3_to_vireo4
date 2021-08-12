@@ -293,6 +293,82 @@ module VIREO
         end
       end
 
+      def adminGroupCounterpart(email_recipient_id)
+        #Check V3 for administrative_groups entry with the id = email_recipient_id
+        #See if counterpart in V4: (abstract_email_recipient where v3.name = v4.name)
+        #dtype = 'EmailRecipientContact'
+        #If not, build it.
+        #return V4 id
+        agFind = "SELECT name FROM administrative_groups WHERE id = %s;" % [email_recipient_id.to_s]
+        v3_agF = VIREO::CON_V3.exec agFind
+        v3name = nil
+        if ((v3_agF != nil) && (v3_agF.count > 0))
+          v3_agF.each do |row|
+            v3name = row['name']
+            return createAbstractEmailRecipient(v3name)
+          end
+        end
+        return 0
+      end
+
+      def createAbstractEmailRecipient(name)
+        aerFind = "SELECT id,name FROM abstract_email_recipient WHERE name='%s';" % [name]
+        v4_id = 0
+        v4_aerF = VIREO::CON_V4.exec aerFind
+        if ((v4_aerF != nil) && (v4_aerF.count > 0))
+          v4_aerF.each do |row|
+            puts "V4 FOUND EXISTING AbstractEmailRecipient " + row.to_s
+            v4_id = row['id'].to_i
+          end
+          return v4_id
+        else
+          if (VIREO::REALRUN)
+            aerInsert = "INSERT INTO abstract_email_recipient (dtype,id,name) VALUES('EmailRecipientContact',DEFAULT,'%s') RETURNING id;" % [name]
+            puts "INSERT "+aerInsert
+            begin
+              v4_aerRS = VIREO::CON_V4.exec aerInsert
+              v4_id = v4_aerRS[0]['id'].to_i;
+              return v4_id
+            rescue StandardError => e
+              puts "\nFAILED ABSTRACT_EMAIL_RECIPIENT VALUE " + aerInsert + " ERR " + e.message;
+              return -1
+            end
+          end
+        end
+      end
+
+      def emailTemplateCounterpart(email_template_id)
+        #Check V3 for email_template with the id = email_template_id
+        #See if counterpart in V4: (email_template where v3.name = v4.name)
+        #dtype = 'EmailRecipientContact'
+        #If not, build it.
+        #return V4 id
+        agFind = "SELECT id,name FROM email_template WHERE id = %s;" % [email_template_id.to_s]
+        v3_agF = VIREO::CON_V3.exec agFind
+        v3name = nil
+        if ((v3_agF != nil) && (v3_agF.count > 0))
+          v3_agF.each do |row|
+            v3name = row['name']
+            return findEmailTemplate(v3name)
+          end
+        end
+        return 0
+      end
+
+      def findEmailTemplate(name)
+        aerFind = "SELECT id,name FROM email_template WHERE name='%s';" % [name]
+        v4_id = 0
+        puts "ET FIND "+aerFind
+        v4_aerF = VIREO::CON_V4.exec aerFind
+        if ((v4_aerF != nil) && (v4_aerF.count > 0))
+          v4_aerF.each do |row|
+            puts "V4 FOUND EXISTING AbstractEmailRecipient " + row.to_s
+            v4_id = row['id'].to_i
+          end
+          return v4_id
+        end
+      end
+
       def createEmailWorkflowRule(is_disabled,is_system,email_recipient_id,email_template_id,submission_status_id)
         etFind = "SELECT email_template_id,submission_status_id from email_workflow_rule WHERE email_template_id='%s' AND submission_status_id='%s';" % [email_template_id.to_s,submission_status_id.to_s]
         v4_etF = VIREO::CON_V4.exec etFind
@@ -303,10 +379,13 @@ module VIREO
           return 0
         else
           if (VIREO::REALRUN)
+            v4_email_template_id = emailTemplateCounterpart(email_template_id)
             if(email_recipient_id == nil)
-              etInsert = "INSERT INTO email_workflow_rule (id,is_disabled,is_system,email_template_id,submission_status_id) VALUES(DEFAULT,'%s','%s',%s,%s);" % [is_disabled,is_system,email_template_id,submission_status_id]
+              etInsert = "INSERT INTO email_workflow_rule (id,is_disabled,is_system,email_template_id,submission_status_id) VALUES(DEFAULT,'%s','%s',%s,%s);" % [is_disabled,is_system,v4_email_template_id,submission_status_id]
             else
-              etInsert = "INSERT INTO email_workflow_rule (id,is_disabled,is_system,email_recipient_id,email_template_id,submission_status_id) VALUES(DEFAULT,'%s','%s',%s,%s,%s);" % [is_disabled,is_system,email_recipient_id,email_template_id,submission_status_id]
+              v4_email_recipient_id = adminGroupCounterpart(email_recipient_id)
+              etInsert = "INSERT INTO email_workflow_rule (id,is_disabled,is_system,email_recipient_id,email_template_id,submission_status_id) VALUES(DEFAULT,'%s','%s',%s,%s,%s);" % [is_disabled,is_system,v4_email_recipient_id.to_s,v4_email_template_id.to_s,submission_status_id]
+              #etInsert = "INSERT INTO email_workflow_rule (id,is_disabled,is_system,email_recipient_id,email_template_id,submission_status_id) VALUES(DEFAULT,'%s','%s',%s,%s,%s);" % [is_disabled,is_system,email_recipient_id,email_template_id,submission_status_id]
             end
             puts "INSERT "+etInsert
             begin
