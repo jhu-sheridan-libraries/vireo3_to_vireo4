@@ -1,14 +1,12 @@
-# Vireo3 to Vireo4 migration
+## Vireo3 to Vireo4 migration
 
-#### This document is a first pass and very much a work in progress.  Please help me refine it by asking for clarifications in any vireo open source public channel.
+#### This document is a first pass and very much a work in progress.  Please help me refine it by asking for clarifications in any vireo open source public channel.  It will be periodically updated with bulk changes from a private repository.
 
 #### This repository is designed to be used by ansible scripts but can be run manually.  Texas Digital Library uses ansible scripts for provisioning its hosted servers.  The scripts may become available in the future.  These instructions are for manual operation.
 
 The migration software is a set of ruby methods to be run in sequence.  These methods perform a crosswalk between a populated vireo3 database and an initialized vireo4 database.
 
-These instructions assume a server has been provisioned with all that is necessary to host vireo4 and apache and shibboleth and anything else needed.
-It also assumes a copy of the vireo3 database and its associated file directory (containing dissertation PDF files, license files, etc) are accessible on the vireo4 server.
-
+These instructions assume a server has been provisioned with all that is necessary to host vireo4 and apache and shibboleth and anything else needed.  It also assumes a copy of the vireo3 database and its associated file directory (containing dissertation PDF files, license files, etc) are accessible on the vireo4 server.
 
 
 1.  Put the migration code on the vireo4 server:
