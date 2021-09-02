@@ -19,7 +19,7 @@ git clone https://github.com/TexasDigitalLibrary/vireo3_to_vireo4.git
 2.  Install ruby and gem 'pg'
 
 
-3.  Create a local copy of the vireo3 database and its files on the server.  These locations will be specified in the MigrateGlobal.rb file in step 5.
+3.  Create a local copy of the vireo3 database and its files on the server.  These locations will be specified in the MigrateGlobal.rb file in step 5. 
 
 
 4.  Determine how to use the hierarchical expression of organizational structure in vireo4.  The mapping for departments/colleges/schools needs to be expressed in
@@ -33,7 +33,7 @@ SiteSpecific.rb.  See that file for further instructions.
 ```
 
 
-6.  Edit MigrateGlobal.rb - follow instructions in comments.  This needs to point to both databases and the vireo3 and vireo4 data directories among other things.  This step must be performed before all subsequent steps are.
+6.  Edit MigrateGlobal.rb - follow instructions in comments.  This needs to point to both databases and the vireo3 and vireo4 data directories among other things.  These directories should end with a '/' for unix/linux based systems.  This step must be performed before all subsequent steps are.
 
 
 7.  Save existing configuration.

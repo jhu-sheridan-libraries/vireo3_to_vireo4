@@ -118,6 +118,10 @@ module VIREO
         else
           if (VIREO::REALRUN)
             packager_id = findPackagerByName(packager)
+            ##IF NOT FOUND THEN USE DEFAULT
+            if(packager_id == 0)
+              packager_id = findPackagerByName("DSpaceSimple")
+            end
             dlInsert = "INSERT INTO deposit_location (id,position,collection,depositor_name,name,on_behalf_of,password,repository,timeout,username,packager_id) VALUES(DEFAULT,%s,'%s','%s','%s','%s','%s','%s',%s,'%s',%s);" % [position.to_s, collection, depositor_name, name, on_behalf_of, password, repository, timeout.to_s, username, packager_id.to_s]
             begin
               v4_dlRS = VIREO::CON_V4.exec dlInsert
@@ -305,6 +309,7 @@ module VIREO
         if ((v3_agF != nil) && (v3_agF.count > 0))
           v3_agF.each do |row|
             v3name = row['name']
+            v3name = VIREO::CON_V3.escape_string(v3name)
             return createAbstractEmailRecipient(v3name)
           end
         end

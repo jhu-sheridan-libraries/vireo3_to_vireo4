@@ -577,12 +577,13 @@ module VIREO
         fvSelect = "SELECT s.id, w.username, ci.email, cip.email AS permanent_email, ci.phone, cip.phone AS permanent_phone FROM submission s, weaver_users w, contact_info ci, contact_info cip WHERE s.submitter_id = w.id AND w.current_contact_info_id = ci.id AND w.permanent_contact_info_id = cip.id;"
         v4_fvRS = VIREO::CON_V4.exec fvSelect
         v4_fvRS.each do |fv|
+          puts "\n\nCONTACT###############################"
           submission_id = fv['id'].to_s
           current_email = fv['email'].to_s
           permanent_email = fv['permanent_email'].to_s
           current_phone = fv['phone'].to_s
           permanent_phone = fv['permanent_phone'].to_s
-          puts "ID " + submission_id + " CURR EMAIL " + current_email + " PERM EMAIL " + permanent_email + " CURR PHONE " + current_phone + " PERM PHONE " + permanent_phone
+          puts "SUBM ID " + submission_id + " CURR EMAIL " + current_email + " PERM EMAIL " + permanent_email + " CURR PHONE " + current_phone + " PERM PHONE " + permanent_phone
           updateSFVUtility(submission_id, "email", current_email)
           updateSFVUtility(submission_id, "permanent_email", permanent_email)
           updateSFVUtility(submission_id, "current_phone", current_phone)
@@ -593,6 +594,7 @@ module VIREO
         fvaSelect = "SELECT s.id, p.currentpostaladdress, p.permanentpostaladdress FROM person p, submission s WHERE s.submitter_id = p.id;"
         v3_fvaRS = VIREO::CON_V3.exec fvaSelect
         v3_fvaRS.each do |fva|
+          puts "\n\nADDRESS###############################"
           submission_id = fva['id'].to_s
           current_address = fva['currentpostaladdress'].to_s
           permanent_address = fva['permanentpostaladdress'].to_s
@@ -687,7 +689,7 @@ module VIREO
               begin
                 FileUtils.mkdir(VIREO::BASE_DIR_V4 + dest_path)
               rescue StandardError => e
-                puts "FILE MKDIR ERROR " + e.message
+                puts "FILE MKDIR ERR " + e.message
               end
 
               dest_filename = nil
@@ -1207,14 +1209,17 @@ module VIREO
   end
 end
 
-puts "\n\nSUBMISSIONS AND FIELD VALUE EXTRAS BEGIN =====================================\n"
+puts "\n\nSUBMISSIONS BEGIN =====================================\n"
 puts "SUBMISSION " + VIREO::Map.mapSubmission().to_s
+puts "SUBMISSIONS END =====================================\n"
+puts "\n\nFIELD VALUE EXTRAS BEGIN =====================================\n"
 puts "FIELD_VALUE_EXTRAS " + VIREO::Map.fieldValueExtras().to_s
-puts "SUBMISSIONS AND FIELD VALUE EXTRAS END =====================================\n"
+puts "FIELD VALUE EXTRAS END =====================================\n"
 
 puts "\n\nSUBMISSIONS AND FILE UPLOADS BEGIN =====================================\n"
 puts "VIREO::Map.fileUpload() " + VIREO::Map.fileUpload().to_s
 puts "SUBMISSIONS AND FILE UPLOADS END =====================================\n"
+
 
 # puts "\n\nINSTITUTIONAL ID BEGIN=====================================\n"
 # puts "VIREO::Map.InstIdOnly() "+VIREO::Map.InstIdOnly().to_s
