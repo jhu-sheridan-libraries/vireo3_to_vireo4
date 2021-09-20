@@ -124,6 +124,7 @@ module VIREO
       end
 
       def renameInstitution(orgCat, orgName)
+        orgName = VIREO::CON_V4.escape_string(orgName)
         inst_cat = orgCat.key("System")
         puts "SYST IND " + inst_cat.to_s
         instUpdate = "UPDATE organization SET name = '%s' WHERE category_id = %s RETURNING id;" % [orgName, inst_cat]
