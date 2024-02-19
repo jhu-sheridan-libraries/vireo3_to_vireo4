@@ -93,24 +93,33 @@ module VIREO
                                    cv_id)
             end
           elsif (cv_name == "Committee Members")
-            v3_S = VIREO::CON_V3.exec "SELECT firstname,middlename,lastname FROM committee_member;"
+#FSS
+            puts "FSS COMM MEMBER "+cv_id.to_s
+            v3_S = VIREO::CON_V3.exec "SELECT displayorder,submission_id,firstname,middlename,lastname FROM committee_member;"
             v3_S.each do |row|
               # name = v3.committee_member.firstname+' '+v3.committee_member.middlename+' '+v3.committee_member.lastname
-              fullname = row['firstname'].to_s + ' ' + row['middlename'].to_s + ' ' + row['lastname'].to_s
+              displayOrder = row['displayorder'].to_s
+              submissionId = row['submission_id'].to_s
+              #fullname = row['firstname'].to_s + ' ' + row['middlename'].to_s + ' ' + row['lastname'].to_s
+              fullname = row['lastname'].to_s + ', ' + row['firstname'].to_s + ' ' + row['middlename'].to_s
               fullname = VIREO::CON_V4.escape_string(fullname)
               if ((fullname != nil) && (fullname.length > 1))
-                vw_id = createVocabularyWord(
-                  "Committee Members", "", fullname, cv_id
-                )
+                vw_id = createVocabularyWord( "Committee Members", "", fullname, cv_id)
+                puts "    CM NAME "+fullname+" DISPLAYORDER "+displayOrder.to_s+" SUBID "+submissionId.to_s
                 if (vw_id > 0)
-                  cm_email = getUserEmail(
-                    row['firstname'].to_s, row['lastname'].to_s
-                  )
+                  #cm_email = getUserEmail(
+                  #  row['firstname'].to_s, row['lastname'].to_s
+                  #)
+                  if(displayOrder.to_s=="1")
+                     cm_email = getChairEmail(submissionId)
+                     puts "    CM_EMAIL FROM SUBM " + cm_email
+                  end
                   createVocabularyWordContacts(vw_id, cm_email)
-                  puts "COMMITTEE MEMBER NAME " + fullname
+                  puts "    COMMITTEE MEMBER NAME " + fullname
                 end
               end
             end
+#FSS
           elsif (cv_name == "Default Embargos")
             v3_S = VIREO::CON_V3.exec "SELECT name FROM embargo_type WHERE guarantor = 0;"
             v3_S.each do |row|
@@ -129,6 +138,16 @@ module VIREO
           end
         end
         return v4_cvS.count.to_s
+      end
+
+      def getChairEmail(submission_id)
+        chairEmailFind = "SELECT committeecontactemail FROM submission WHERE id =%s;" % [submission_id]
+        v4_emailF = VIREO::CON_V3.exec chairEmailFind
+        chairEmail = ""
+        v4_emailF.each do |row|
+          chairEmail = row['committeecontactemail'].to_s
+        end
+        return chairEmail 
       end
 
       def getUserEmail(firstname, lastname)
@@ -168,24 +187,21 @@ module VIREO
         vw_id_ret = 0
         definition = VIREO::CON_V4.escape_string(definition)
         name = VIREO::CON_V4.escape_string(name)
-        vwFind = "SELECT id,definition, name, controlled_vocabulary_id FROM vocabulary_word WHERE definition='%s' AND name='%s' AND controlled_vocabulary_id=%s;" % [
-          definition, name, controlled_vocabulary_id
-        ]
+        vwFind = "SELECT id,definition, name, controlled_vocabulary_id FROM vocabulary_word WHERE definition='%s' AND name='%s' AND controlled_vocabulary_id=%s;" % [ definition, name, controlled_vocabulary_id ]
         v4_vwF = VIREO::CON_V4.exec vwFind
         if ((v4_vwF != nil) && (v4_vwF.count > 0))
           v4_vwF.each do |row|
             vw_id_ret = row['id'].to_i
-            puts "V4 FOUND EXISTING vocabulary_word " + row.to_s
+            puts "FSS CREATE_VOCAB_WORD V4 FOUND EXISTING vocabulary_word " + row.to_s
           end
         else
           if (VIREO::REALRUN)
-            vwInsert = "INSERT INTO vocabulary_word (id,definition,identifier,name,controlled_vocabulary_id) VALUES(DEFAULT,'%s','%s','%s',%s) RETURNING id;" % [
-              definition, identifier, name, controlled_vocabulary_id
-            ]
+            vwInsert = "INSERT INTO vocabulary_word (id,definition,identifier,name,controlled_vocabulary_id) VALUES(DEFAULT,'%s','%s','%s',%s) RETURNING id;" % [ definition, identifier, name, controlled_vocabulary_id ]
             # VALUES(DEFAULT,depends_on_table,null,depends_on_table,v4.controlled_vocabulary.id)
             begin
               v4_vwRS = VIREO::CON_V4.exec vwInsert
               vw_id_ret = v4_vwRS[0]['id'].to_i;
+              puts "FSS CREATE_VOCAB_WORD V4 CREATED NEW vocabulary_word " + v4_vwRS[0].to_s
             rescue StandardError => e
               puts "\nFAILED VOCABULARY_WORD " + vwInsert + " ERR " + e.message;
               vw_id_ret = -1
@@ -196,9 +212,12 @@ module VIREO
       end
 
       def createVocabularyWordContacts(vocabulary_word_id, contacts)
-        vwcFind = "SELECT vocabulary_word_id, contacts FROM vocabulary_word_contacts WHERE vocabulary_word_id=%s AND contacts='%s';" % [
-          vocabulary_word_id, contacts
-        ]
+        if(contacts.nil?)
+          return 0
+        end
+        contacts = VIREO::CON_V4.escape_string(contacts)
+        vwcFind = "SELECT vocabulary_word_id, contacts FROM vocabulary_word_contacts WHERE vocabulary_word_id=%s AND contacts='%s';" % [ vocabulary_word_id, contacts ]
+
         v4_vwcF = VIREO::CON_V4.exec vwcFind
         if ((v4_vwcF != nil) && (v4_vwcF.count > 0))
           v4_vwcF.each do |row|
@@ -224,6 +243,7 @@ module VIREO
       def listAdminGroupEmail()
         agSelect = "SELECT displayorder,name,encode(emails::bytea,'hex') as email FROM administrative_groups;"
         v3agRS = VIREO::CON_V3.exec agSelect
+        begin
         v3agRS.each do |row|
           emailHex = row['email'].to_s
           # puts "EMAIL "+emailHex
@@ -235,6 +255,9 @@ module VIREO
           emailList = JSON.parse(emailList)
           # puts " EMAILLIST "+emailList.to_s
           insertIntoV4(row['displayorder'], row['name'], emailList)
+        end
+        rescue StandardError => e
+          puts "ERROR "+e.message
         end
       end
 

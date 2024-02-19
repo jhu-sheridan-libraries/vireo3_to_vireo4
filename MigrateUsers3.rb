@@ -51,11 +51,27 @@ module VIREO
             puts "  PERM ADDR ID " + perm_address_id.to_s
             puts "PA " + row['permanentemailaddress'].to_s
             puts "ROW " + row.to_s
-            perm_contactinfo_id = createContactInfo(1, row['permanentemailaddress'], row['permanentphonenumber'],
+            permanent_email = row['permanentemailaddress']
+            email = row['email']
+            if(firstname!=nil)
+              firstname = VIREO::CON_V4.escape_string(firstname)
+            end
+            if(lastname!=nil)
+              lastname = VIREO::CON_V4.escape_string(lastname)
+            end
+            if(permanent_email!=nil)
+              permanent_email = VIREO::CON_V4.escape_string(permanent_email)
+            end
+            if(email!=nil)
+              email = VIREO::CON_V4.escape_string(email)
+            end
+
+            perm_contactinfo_id = createContactInfo(1, permanent_email, row['permanentphonenumber'],
                                                     perm_address_id, weaverusers_id)
             puts "  PERM CONT INFO ID " + perm_contactinfo_id.to_s
 
-            createUserSettings(weaverusers_id, row['email'], row['firstname'], row['lastname'])
+
+            createUserSettings(weaverusers_id, email, row['firstname'], row['lastname'])
             active_filter_id = createNamedSearchFilterGroup(weaverusers_id);
             weaverusers_id = updateWeaverUsers(weaverusers_id, curr_contactinfo_id, perm_contactinfo_id,
                                                active_filter_id)
@@ -126,16 +142,6 @@ module VIREO
         postal_code = ""
         if (citystatezip)
         end
-=begin
-        puts "===="+addr_parts.length.to_s
-        if(addr_parts.length > 0)
-          puts "A1 "+addr_line1.to_s
-          puts "A2 "+addr_line2.to_s
-          puts "CSZ "+citystatezip.to_s
-          puts "COUNTRY "+country.to_s
-          puts "+++++++++++"
-        end
-=end
         if (addr_line1 != nil)
           addr_line1 = VIREO::CON_V4.escape_string(addr_line1)
         end
@@ -224,8 +230,6 @@ module VIREO
 
       def createUserSettings(weaverusers_id, email, firstname, lastname)
         begin
-          firstname = VIREO::CON_V4.escape_string(firstname)
-          lastname = VIREO::CON_V4.escape_string(lastname)
 
           userSettingsFind = "SELECT * FROM user_settings WHERE user_id=%s AND value='%s' AND setting='%s';" % [
             weaverusers_id, (firstname + ' ' + lastname), "displayName"
@@ -283,6 +287,8 @@ module VIREO
         columns_flag = false
         name = nil
         public_flag = false
+        sort_column_title = nil
+        sort_direction = nil
         umi_release = false
         begin
           cnsfgFind = "SELECT id FROM named_search_filter_group WHERE columns_flag='%s' AND name='%s' AND public_flag='%s' AND umi_release='%s' AND user_id='%s';" % [
@@ -296,9 +302,14 @@ module VIREO
           else
             cnsfg_id = 0
             if (VIREO::REALRUN)
-              cnsfgInsert = "INSERT INTO named_search_filter_group VALUES(DEFAULT,'%s','%s','%s','%s',%s) RETURNING id;" % [
+              #cnsfgInsert = "INSERT INTO named_search_filter_group (id,columns_flag,name,public_flag,sort_column_title,sort_direction,umi_release,user_id) VALUES(DEFAULT,'%s','%s','%s','%s','%s','%s',%s) RETURNING id;" % [
+              #  columns_flag, name, public_flag, sort_column_title,sort_direction,umi_release, weaverusers_id
+              #]
+              umi_release = false
+              cnsfgInsert = "INSERT INTO named_search_filter_group (id,columns_flag,name,public_flag,umi_release,user_id) VALUES(DEFAULT,'%s','%s','%s','%s',%s) RETURNING id;" % [
                 columns_flag, name, public_flag, umi_release, weaverusers_id
               ]
+
               v4_cnsfgRS = VIREO::CON_V4.exec cnsfgInsert
               cnsfg_id = v4_cnsfgRS[0]['id'].to_i
             end
@@ -340,8 +351,12 @@ module VIREO
         if (orcid == nil)
           orcid = 'null'
         end
+        email = row['email']
+        if (email != nil)
+          email = VIREO::CON_V4.escape_string(email)
+        end
 
-        username = row['email']
+        username = email
 
         firstname = row['firstname']
         if (firstname != nil)
@@ -361,7 +376,7 @@ module VIREO
         if ((v4_weaverusersF != nil) && (v4_weaverusersF.count.to_i > 0))
           v4_id = v4_weaverusersF[0]['id'].to_i
           weaver_users_findchange = "SELECT id FROM weaver_users WHERE dtype='%s' AND id=%s AND username='%s' AND birth_year=%s AND email='%s' AND first_name='%s' AND last_name='%s' AND middle_name='%s' AND netid='%s' AND orcid='%s' AND page_size=%s AND password='%s' AND role='%s';" % [
-            dtype, wu_id.to_s, username, birthyear, row['email'], firstname, lastname, middlename, row['netid'], orcid, page_size.to_s, pwdh, v4role
+            dtype, wu_id.to_s, username, birthyear, email, firstname, lastname, middlename, row['netid'], orcid, page_size.to_s, pwdh, v4role
           ]
           weaver_users_findchange.gsub!("birth_year=null", "birth_year IS NULL")
           v4_weaverusersFC = VIREO::CON_V4.exec weaver_users_findchange
@@ -376,7 +391,7 @@ module VIREO
           weaver_id = 0
           if (VIREO::REALRUN)
             weaver_users_stmt = "INSERT INTO weaver_users (dtype,id,username,birth_year,email,first_name,last_name,middle_name,netid,orcid,page_size,password,role) VALUES('%s',%s,'%s',%s,'%s','%s','%s','%s','%s','%s',%s,'%s','%s') RETURNING id;" % [
-              dtype, wu_id.to_s, username, birthyear, row['email'], firstname, lastname, middlename, row['netid'], orcid, page_size.to_s, pwdh, v4role
+              dtype, wu_id.to_s, username, birthyear, email, firstname, lastname, middlename, row['netid'], orcid, page_size.to_s, pwdh, v4role
             ]
             # puts "V4 CREATING WEAVER USER "+weaver_users_stmt
             v4_weaverusersRS = VIREO::CON_V4.exec weaver_users_stmt

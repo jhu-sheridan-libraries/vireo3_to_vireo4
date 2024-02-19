@@ -101,6 +101,10 @@ module VIREO
             submitter_id = row['submitter_id']
             assignee_id = row['assignee_id']
             deposit_id = row['depositid']
+            reviewernotes = row['reviewernotes']
+            if(reviewernotes != nil)
+              reviewernotes = VIREO::CON_V4.escape_string(reviewernotes)
+            end
             documenttype = row['documenttype']
             degreelevel = row['degreelevel']
             degree = row['degreelevel']
@@ -142,7 +146,7 @@ module VIREO
               failed += 1
             else
               puts "  FOR ORG ID " + organization_id.to_s
-              sub_id = createSubmission(submission_id, organization_id, submission_status_id, submitter_id, deposit_id)
+              sub_id = createSubmission(submission_id, organization_id, submission_status_id, submitter_id, deposit_id,reviewernotes)
               puts "  JUST CREATED SUBMISSION WITH ID " + sub_id.to_s
               if (sub_id == -1)
                 puts "CREATE SUB ERROR FOR V3 SUB ID " + submission_id.to_s
@@ -184,7 +188,7 @@ module VIREO
         v4_subRS = VIREO::CON_V4.exec subUpdate
       end
 
-      def createSubmission(id, organization_id, submission_status_id, submitter_id, deposit_id)
+      def createSubmission(id, organization_id, submission_status_id, submitter_id, deposit_id,reviewernotes)
         # UTILITY FOR BUILDING V4.SUBMISSION
         ## ONLY NEED TO LOOK FOR ID AS ALL FIELDS ARE IMMUTABLE EXCEPT SUBMISSION_STATUS_ID AND THAT IS SET IN MigrateActionLog.rb
         # puts "DEPOSITID "+deposit_id.to_s
@@ -208,9 +212,8 @@ module VIREO
         else
           sub_id = -1
           if (VIREO::REALRUN)
-            submissionInsert = "INSERT INTO submission (id,organization_id,submission_status_id,submitter_id,depositurl) VALUES(%s,%s,%s,%s,'%s') RETURNING id;" % [
-              id, organization_id, submission_status_id, submitter_id, deposit_id
-            ]
+            submissionInsert = "INSERT INTO submission (id,organization_id,submission_status_id,submitter_id,depositurl,reviewer_notes) VALUES(%s,%s,%s,%s,'%s','%s') RETURNING id;" % [
+              id, organization_id, submission_status_id, submitter_id, deposit_id,reviewernotes ]
             puts "SUB " + submissionInsert.to_s
             begin
               v4_submissionRS = VIREO::CON_V4.exec submissionInsert
@@ -314,17 +317,18 @@ module VIREO
             swfs_id = 0
             if ((v4_swfsF != nil) && (v4_swfsF.count > 0))
               swfs_id = v4_swfsF[0]['id'].to_i
-            # puts "  V4 FOUND SWFS "+swfs_id.to_s
+              puts "  V4 FOUND SWFS "+swfs_id.to_s
             else
               swfs_id = 0
               if (VIREO::REALRUN)
-                swfsInsert = "INSERT INTO submission_workflow_step VALUES(DEFAULT,'%s','%s','%s') RETURNING id;" % [
-                  wfs['instructions'], wfs['name'], wfs['overrideable']
-                ]
+                swfsInsert = "INSERT INTO submission_workflow_step VALUES(DEFAULT,'%s','%s','%s') RETURNING id;" % [ wfs['instructions'], wfs['name'], wfs['overrideable'] ]
                 v4_swfsRS = VIREO::CON_V4.exec swfsInsert
-                swf_ids = v4_swfsRS[0]['id'].to_i
+                puts "SWFS INSERT "+swfsInsert
+		#FSS
+                #swf_ids = v4_swfsRS[0]['id'].to_i
+                swfs_id = v4_swfsRS[0]['id'].to_i
               end
-              # puts "  V4 CREATED SWFS "+swfs_id.to_s
+              puts "  V4 CREATED SWFS "+swfs_id.to_s
             end
 
             if (swfs_id != 0)
@@ -335,14 +339,14 @@ module VIREO
               v4_sswfsF = VIREO::CON_V4.exec sswfsFind
               if ((v4_sswfsF != nil) && (v4_sswfsF.count > 0))
                 sswfs_id = v4_sswfsF[0]['submission_id'].to_i
-              # puts "  V4 FOUND SSWFS For SubmissionID "+sswfs_id.to_s
+                puts "  V4 FOUND SSWFS For SubmissionID "+sswfs_id.to_s
               else
                 if (VIREO::REALRUN)
                   sswfsInsert = "INSERT INTO submission_submission_workflow_steps VALUES(%s,%s,%s);" % [submission_id.to_s,
                                                                                                         swfs_id.to_s, indx.to_s]
-                  # puts "SSWFS INSERT "+sswfsInsert
+                  puts "SSWFS INSERT "+sswfsInsert
                   v4_sswfsRS = VIREO::CON_V4.exec sswfsInsert
-                  # puts "V4 CREATED SSWFS INSERT "
+                  puts "V4 CREATED SSWFS INSERT "
                 end
               end
 
@@ -350,7 +354,7 @@ module VIREO
               swsafpiSelect = "SELECT MAX(submission_workflow_step_id) FROM submission_workflow_step_aggregate_field_profiles;"
               v4_swsafpiRS = VIREO::CON_V4.exec swsafpiSelect
               lastIndex = v4_swsafpiRS[0]['max'].to_i
-              # puts "LAST INDEX "+lastIndex.to_s
+              puts "LAST INDEX "+lastIndex.to_s
               # puts "DONE CREATING SSWS"
 
               # this can be more efficient -fix later
@@ -384,20 +388,21 @@ module VIREO
       end
 
       def createSWSAFP(swfs_id, afp, orderindx)
-        # puts "SWSAFP AFP "+afp.to_s
+        puts "SWSAFP AFP "+afp.to_s
         swsafpFind = "SELECT * FROM submission_workflow_step_aggregate_field_profiles WHERE submission_workflow_step_id=%s AND aggregate_field_profiles_id=%s AND aggregate_field_profiles_order=%s;" % [
           swfs_id.to_s, afp.to_s, orderindx.to_s
         ]
+        puts "SWSAFP SELECT "+swsafpFind.to_s
         v4_swsafpF = VIREO::CON_V4.exec swsafpFind
         if ((v4_swsafpF != nil) && (v4_swsafpF.count > 0))
           swfs_id = v4_swsafpF[0]['submission_workflow_step_id'].to_i
-        # puts "    V4 FOUND SSWFAP For INDX " +orderindx.to_s+" SubmissionWorkflowStepID "+swfs_id.to_s
+          puts "    V4 FOUND SSWFAP For INDX " +orderindx.to_s+" SubmissionWorkflowStepID "+swfs_id.to_s
         else
           if (VIREO::REALRUN)
             swsafpInsert = "INSERT INTO submission_workflow_step_aggregate_field_profiles (submission_workflow_step_id,aggregate_field_profiles_id,aggregate_field_profiles_order) VALUES(%s,%s,%s);" % [
               swfs_id.to_s, afp.to_s, orderindx.to_s
             ]
-            # puts "    V4 CREATED SWSAFP FOR INDX "+orderindx.to_s
+            puts "    V4 CREATED SWSAFP FOR INDX "+orderindx.to_s
             v4_swsafpRS = VIREO::CON_V4.exec swsafpInsert
           end
         end
@@ -687,7 +692,7 @@ module VIREO
               puts "V3 LOCAL SOURCE DATE " + src_date.to_s + " SIZE " + src_size.to_s + " FILE " + src_path.to_s
               dest_path = VIREO::DEST_SUBDIR + getJavaHash(v4email) + "/"
               begin
-                FileUtils.mkdir(VIREO::BASE_DIR_V4 + dest_path)
+                FileUtils.mkdir_p(VIREO::BASE_DIR_V4 + dest_path)
               rescue StandardError => e
                 puts "FILE MKDIR ERR " + e.message
               end
@@ -719,6 +724,8 @@ module VIREO
                 fieldPredicateString = "_doctype_source";
               elsif (type_string == "6")
                 fieldPredicateString = "_doctype_administrative";
+              elsif (type_string == "7")
+                fieldPredicateString = "_doctype_feedback";
               end
 
               puts "      LOCAL DEST_FILENAME " + dest_filename + " FIELDPRED " + fieldPredicateString

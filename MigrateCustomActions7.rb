@@ -36,6 +36,12 @@ module VIREO
         return { "custom_definitions": cad_count, "submission_custom_action_values": scav_count }
       end
 
+      def customActionDefinitionPositionCorrection()
+        correctCAD = "UPDATE custom_action_definition SET position = ((position/10)+1);"
+        v4_ccadF = VIREO::CON_V4.exec correctCAD
+        return "1"
+      end
+
       def createCustomActionDefinition(id, position, is_student_visible, label)
         label = VIREO::CON_V4.escape_string(label)
         cadFind = "SELECT label FROM custom_action_definition WHERE label = '%s';" % [label]
@@ -119,3 +125,4 @@ end
 #########################
 # puts "ONLY UPDATE CUSTOM ACTIONS UPON FIRST MIGRATION - SUBSEQUENT MIGRATIONS SHOULD DEFER TO VIREO4 CHANGES"
 puts "ADDED CUSTOM ACTIONS " + VIREO::Map.updateCustomActions().to_s
+puts "CORRECT CustomActionDefinition position " + VIREO::Map.customActionDefinitionPositionCorrection().to_s

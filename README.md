@@ -20,8 +20,7 @@ git clone https://github.com/TexasDigitalLibrary/vireo3_to_vireo4.git
 3.  Create a local copy of the vireo3 database and its files on the server.  These locations will be specified in the MigrateGlobal.rb file in step 5. 
 
 
-4.  Determine how to use the hierarchical expression of organizational structure in vireo4.  The mapping for departments/colleges/schools needs to be expressed in
-SiteSpecific.rb.  See that file for further instructions.
+4.  Determine how to use the hierarchical expression of organizational structure in vireo4.  The mapping for departments/colleges/schools needs to be expressed in SiteSpecific.rb.  See that file for further instructions.
 
 
 5.  Compile HashMapFromHex.java and hash.java - these are needed by the ruby program to create correct hashes for files and to convert admin_groups email hashmap from v3 to v4
@@ -30,8 +29,17 @@ SiteSpecific.rb.  See that file for further instructions.
   javac hash.java
 ```
 
+Compile DepLocEncode.java - this is needed for encoding the deposit_location password from vireo3.
+Before this is compiled the secret Key must be set with setKey (currently 'setKey("verysecretsecret)') in main().
 
-6.  Edit MigrateGlobal.rb - follow instructions in comments.  This needs to point to both databases and the vireo3 and vireo4 data directories among other things.  These directories should end with a '/' for unix/linux based systems.  This step must be performed before all subsequent steps are.
+This is the same value found in application.yaml security: secret:
+
+```
+  javac DepLocEncode.java
+```
+
+
+6.  Edit MigrateGlobal.rb - follow instructions in comments.  This needs to point to both databases and the vireo3 and vireo4 data directories among other things.  These directories should end with a '/' for unix/linux based systems.  This step must be performed before all subsequent steps are done.  MigrateGlobal.rb points to several directories, notably the path containing the vireo3 data files (licenses, Theses, etc.) and the vireo4 destination for those files.  This is typically something like "/ebs/yourinstitution/attachments/" for the vireo3 subdirectories (a directory for each submitter) and a '/ebs/vireo/' and '/ebs/vireo/private/' as a destination for vireo4 subdirectories for each submitter.  (The 'private/' subpath is hardcoded in the migration code.)  The name of the subdirectory in '/ebs/vireo/private/' is calculated by hash.java.
 
 
 7.  Save existing configuration.
@@ -50,6 +58,12 @@ To set these values in the new vireo4 once migrations are complete using Restore
 ```
 Which reads the vireo3 database and generates a new SYSTEM_Organization_Definition.json file which you can copy into src/main/resources/organization to replace the current file.
 Also note that in order to export these custom values in proquest exports you may need an alternate vireo4 branch.  Currently this is 4.1.1_AddContributorVariants_1526 but could change.
+
+```
+ruby WriteCWasJson.rb
+```
+Write out controlled vocabularies in JSON format from a migrated vireo4 instance. 
+
 
 
 9.  If you don't already have one, create a new blank vireo4 postgres database and give permissions to the role you will use to sign in (from within psql):
@@ -79,6 +93,10 @@ ruby MigrateCustomActions7.rb > customactions7.log
 ruby MigrateFinal8.rb > final8.log
 ```
 
+Alternatively you can do:
+```
+source run.script &
+```
 
 12.  If you ran SaveManagedConfig.rb earlier then now is the time to run Restore Managed Config
 ```
@@ -90,5 +108,14 @@ ruby MigrateFinal8.rb > final8.log
 ```
 UPDATE weaver_users SET role='ROLE_ADMIN' WHERE id = [users id];
 ```
+
+To prevent further changes to database upon startup (from initializing files) set hibernate.ddl-auto to 'none' in src/main/resources/application.yaml
+
+```
+jpa:
+  ...
+  hibernate.ddl-auto: none
+```
+
 
 

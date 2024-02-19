@@ -128,12 +128,16 @@ module VIREO
         inst_cat = orgCat.key("System")
         puts "SYST IND " + inst_cat.to_s
         instUpdate = "UPDATE organization SET name = '%s' WHERE category_id = %s RETURNING id;" % [orgName, inst_cat]
+        puts "ORG: "+instUpdate
         begin
           v4_upd = VIREO::CON_V4.exec instUpdate
         rescue StandardError => e
           puts "EXCEPTION INSTITUTION RENAME " + e.message
         end
         org_id = v4_upd[0]['id'].to_i
+        if(org_id == nil)
+          org_id = 0
+        end
         return org_id
       end
 
@@ -149,6 +153,7 @@ module VIREO
           v4_id = 0
           if (VIREO::REALRUN)
             organizationCatInsert = "INSERT INTO organization_category (id,name) VALUES(DEFAULT,'%s') RETURNING id;" % [name]
+            puts "ORG: "+organizationCatInsert
             v4_organizationCatRS = VIREO::CON_V4.exec organizationCatInsert
             v4_id = v4_organizationCatRS[0]['id'].to_i
             puts "\tCREATED NEW ORGANIZATION CAT IN V4 " + v4_id.to_s
@@ -178,6 +183,7 @@ module VIREO
             organizationInsert = "INSERT INTO organization (id,accepts_submissions,name,category_id,parent_organization_id) VALUES(DEFAULT,'%s','%s',%s,%s) RETURNING id;" % [
               accept_sub, name, category_id, parent_organization_id
             ]
+            puts "ORG: "+organizationInsert
             v4_organizationRS = VIREO::CON_V4.exec organizationInsert
             v4_id = v4_organizationRS[0]['id'].to_i
             puts "\tCREATED NEW ORGANIZATION IN V4 " + v4_id.to_s
@@ -202,6 +208,7 @@ module VIREO
             organizationcoInsert = "INSERT INTO organization_children_organizations (organization_id,children_organizations_id) VALUES(%s,%s);" % [
               parentorg_id, org_id
             ]
+            puts "ORG: "+organizationcoInsert
             VIREO::CON_V4.exec organizationcoInsert
             puts "\ttCREATED ORG_CHILDREN_ORG " + organizationcoInsert
           else
@@ -228,7 +235,7 @@ module VIREO
               organizationawsInsert = "INSERT INTO organization_aggregate_workflow_steps (organization_id,aggregate_workflow_steps_id,aggregate_workflow_steps_order) VALUES(%s,%s,%s);" % [
                 org_id.to_i, wfs['id'].to_i, wfs_indx
               ]
-              puts "\t\tCREATING ORG_AWS " + organizationawsInsert
+              puts "ORG: "+organizationawsInsert
               begin
                 VIREO::CON_V4.exec organizationawsInsert
               rescue StandardError => e
@@ -244,6 +251,7 @@ module VIREO
   end
 end
 
+#relies on site specific files in vireo3_to_vireo4_tdl
 puts "\n\nORGANIZATION BEGIN====================================="
 puts VIREO::Map.buildOrg().to_s
 puts "ORGANIZATION END =====================================\n"

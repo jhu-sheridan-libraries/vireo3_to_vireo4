@@ -1,5 +1,6 @@
 require 'pg'
 require 'set'
+require 'open3'
 
 require_relative 'MigrateGlobal.rb'
 
@@ -10,12 +11,26 @@ module VIREO
   module Map
     class << self
       def initializeSettings()
-        setManagedConfiguration('hierarchical', 'true')
-        setManagedConfiguration('submissions_open', 'true')
-        setManagedConfiguration('allow_multiple_submissions', 'true')
+        setManagedConfiguration('hierarchical','application','true')
+        setManagedConfiguration('submissions_open','application','true')
+        setManagedConfiguration('allow_multiple_submissions','application','true')
+
+        pic = getV3ConfigByName("proquest_institution_code")
+        if(pic!=nil)
+          setManagedConfiguration('proquest_institution_code','proquest_umi_degree_code',pic)
+        end
       end
 
-      def setManagedConfiguration(name, value)
+      def getV3ConfigByName(config_name)
+        v3cSelect = "SELECT value FROM configuration WHERE name = '%s';" % [config_name]
+        v3_cRS = VIREO::CON_V3.exec v3cSelect
+        v3_cRS.each do |c|
+          return c['value'].to_s
+        end
+        return nil
+      end
+
+      def setManagedConfiguration(name,ctype,value)
         if (VIREO::REALRUN)
           begin
             hierSelect = "SELECT name FROM managed_configuration WHERE name = '" + name + "';"
@@ -24,8 +39,7 @@ module VIREO
               hierUpdate = "UPDATE managed_configuration SET value = '%s' WHERE name = '%s';" % [value, name]
               VIREO::CON_V4.exec hierUpdate
             else
-              hierInsert = "INSERT INTO managed_configuration (id,name,type,value) VALUES (DEFAULT,'%s','%s','%s');" % [name,
-                                                                                                                        'application', value]
+              hierInsert = "INSERT INTO managed_configuration (id,name,type,value) VALUES (DEFAULT,'%s','%s','%s');" % [name,ctype,value]
               VIREO::CON_V4.exec hierInsert
             end
           rescue StandardError => e
@@ -87,17 +101,30 @@ module VIREO
           deleteDepositLocation()
         end
         dlSelect = "SELECT * FROM deposit_location;"
-        dl_count = 0
         v3_dlRS = VIREO::CON_V3.exec dlSelect
-        displayorder = 0
+        displayorder = 1
         v3_dlRS.each do |dl|
-          cdl = createDepositLocation(dl['displayorder'], dl['collection'], dl['depositor_name'], dl['name'], dl['onbehalfof'],
-                                      dl['password'], dl['repository'], dl['timeout'], dl['username'], dl['packager'])
+          v3pwd = dl['password']
+          password = getJavaPasswordEnc(v3pwd)
+          puts "V3: "+v3pwd.to_s+" V4: "+password.to_s
+          depositor = "SWORDv1Depositor"
+          cdl = createDepositLocation(displayorder, dl['collection'], depositor, dl['name'], dl['onbehalfof'], password, dl['repository'], dl['timeout'], dl['username'], dl['packager'])
           if (cdl > 0)
-            dl_count += 1
+            displayorder += 1
           end
         end
-        return dl_count
+        return (displayorder-1)
+      end
+
+      def getJavaPasswordEnc(v3pwd)
+        cmd = "java DepLocEncode '%s'" % [v3pwd]
+        puts cmd
+        stdout_str, stderr_str, status = Open3.capture3(cmd)
+        if (status.success?)
+          return stdout_str.to_s
+        else
+          return "-1"
+        end
       end
 
       def deleteDepositLocation()
@@ -106,9 +133,10 @@ module VIREO
       end
 
       def createDepositLocation(position, collection, depositor_name, name, on_behalf_of, password, repository, timeout, username, packager)
+        name = VIREO::CON_V4.escape_string(name)
+        repository = VIREO::CON_V4.escape_string(repository)
         dlFind = "SELECT name,repository FROM deposit_location WHERE name='%s' AND repository='%s';" % [name,
                                                                                                         repository]
-        password = '' # let admins/users put in the password directly
         v4_dlF = VIREO::CON_V4.exec dlFind
         if ((v4_dlF != nil) && (v4_dlF.count > 0))
           v4_dlF.each do |row|
@@ -170,15 +198,10 @@ module VIREO
           end
           position = position + 1
           cet = 0
-          # if(et['id'].to_i > 0)
           cet = createEmbargoType(et['id'].to_s, position.to_s, et['description'], et['duration'].to_s,guarantor,et['active'].to_s, et['name'].to_s, et['systemrequired'])
-          # end
           if (cet > 0)
             emb_count += 1
           end
-          # else
-          #	#puts "SYSTEM "+et['name'].to_s
-          # end
         end
         return emb_count
       end
@@ -200,10 +223,10 @@ module VIREO
           return 0
         else
           if (VIREO::REALRUN)
+            if((duration==nil)||(duration.length<1))
+              duration = 0
+            end
             etInsert = "INSERT INTO embargo (id,position,description,duration,guarantor,is_active,name,system_required) VALUES(%s,%s,'%s',%s,'%s','%s','%s','%s');" % [id, position, description, duration, guarantor, active, name, system_required]
-            # if((duration==nil)||(duration.length<1))
-            etInsert = "INSERT INTO embargo (id,position,description,guarantor,is_active,name,system_required) VALUES(%s,%s,'%s','%s','%s','%s','%s');" % [id, position, description, guarantor, active, name, system_required]
-            # end
             puts etInsert
             begin
               v4_etRS = VIREO::CON_V4.exec etInsert
@@ -295,6 +318,7 @@ module VIREO
         v4_ssiRS.each do |ss|
               return ss['id'].to_i
         end
+        return 0
       end
 
       def adminGroupCounterpart(email_recipient_id)
@@ -375,7 +399,8 @@ module VIREO
       end
 
       def createEmailWorkflowRule(is_disabled,is_system,email_recipient_id,email_template_id,submission_status_id)
-        etFind = "SELECT email_template_id,submission_status_id from email_workflow_rule WHERE email_template_id='%s' AND submission_status_id='%s';" % [email_template_id.to_s,submission_status_id.to_s]
+        #etFind = "SELECT email_template_id,submission_status_id from email_workflow_rule WHERE email_template_id='%s' AND submission_status_id='%s';" % [email_template_id.to_s,submission_status_id.to_s]
+        etFind = "SELECT email_template_id,submission_status_id from email_workflow_rule WHERE email_template_id=%s AND submission_status_id=%s;" % [email_template_id.to_s,submission_status_id.to_s]
         v4_etF = VIREO::CON_V4.exec etFind
         if ((v4_etF != nil) && (v4_etF.count > 0))
           v4_etF.each do |row|
@@ -499,6 +524,20 @@ module VIREO
           end
         end
       end
+
+      def adjustDSpaceFields()
+        updateFields = "UPDATE field_predicate SET value = 'dc.creator.orcid' WHERE value = 'local.etdauthor.orcid';"
+        VIREO::CON_V4.exec updateFields
+        updateFields = "UPDATE field_predicate SET value = 'thesis.degree.discipline' WHERE value = 'thesis.degree.major';"
+        VIREO::CON_V4.exec updateFields
+
+        updateFields = "UPDATE submission_list_column SET predicate = 'dc.creator.orcid' WHERE predicate = 'local.etdauthor.orcid';"
+        VIREO::CON_V4.exec updateFields
+        updateFields = "UPDATE submission_list_column SET predicate = 'thesis.degree.discipline' WHERE predicate = 'thesis.degree.major';"
+        VIREO::CON_V4.exec updateFields
+        return "done"
+      end
+
     end
   end
 end
@@ -512,3 +551,6 @@ puts "ADDED EMAIL WORKFLOW RULES "+VIREO::Map.updateEmailWorkflowRule().to_s
 puts "ADDED DEGREES " + VIREO::Map.updateDegrees().to_s
 puts "UPDATE DEGREE CODES " + VIREO::Map.updateDegreeCodes().to_s
 puts "UPDATE ABSTRACT FIELD PROFILE" + VIREO::Map.updateAbstractFieldProfile().to_s
+puts "ADJUST DSPACE FIELDS " + VIREO::Map.adjustDSpaceFields().to_s
+
+

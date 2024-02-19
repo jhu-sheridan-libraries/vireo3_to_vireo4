@@ -1,5 +1,6 @@
 require 'pg'
 require 'set'
+require 'time'
 
 require_relative 'MigrateGlobal.rb'
 
@@ -28,6 +29,7 @@ module VIREO
         end
         puts mc_list.to_s
         File.write(db_name + '.config', mc_list.to_s)
+        File.write('../'+db_name + Time.now.utc.iso8601+'.config', mc_list.to_s)
       end
     end
   end
