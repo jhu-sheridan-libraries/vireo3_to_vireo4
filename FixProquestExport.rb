@@ -88,7 +88,6 @@ module VIREO
           new_deg_code = "" 
           new_deg_def = "" 
           if(deg_name == nil)
-      #SHSU
           elsif (deg_name.start_with? "Master of Arts")
             new_deg_code = "M.A"
             new_deg_def = "masters" 
@@ -113,7 +112,6 @@ module VIREO
           elsif (deg_name.start_with? "Doctor of Education")
             new_deg_code = "EdD"
             new_deg_def = "doctoral" 
-      #TWU
           elsif (deg_name.start_with? "Master of Art")
             new_deg_code = "M.A"
             new_deg_def = "masters"
@@ -126,7 +124,6 @@ module VIREO
           elsif (deg_name.start_with? "Doctor of Nursing Practice")
             new_deg_code = "DNP"
             new_deg_def = "masters"
-      #UTD
           elsif (deg_name.start_with? "MBA")
             new_deg_code = "MBA"
             new_deg_def = "masters"
