@@ -118,4 +118,10 @@ jpa:
 ```
 
 
+14.  FixProquestExport.rb: If your legacy data does not have the 'identifier' column set to an integer representing the number of months for an embargo value then FixProquestExport.rb will fix that for both Proquest and default embargos.  This is a common problem for exports using newer more strict versions of vireo4.
+
+```
+ruby FixProquestExport.rb 
+```
+
 
