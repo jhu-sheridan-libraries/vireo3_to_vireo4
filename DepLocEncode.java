@@ -10,7 +10,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class DepLocEncode {
 
 	public static void main(String argv[]){
-                setKey("verysecretsecret");
+                //setKey("verysecretsecret");
+                setKey("tiansftdlstswbcf");
                 String encStr = convertToDatabaseColumn(argv[0]);
 		System.out.println(encStr);
 	}

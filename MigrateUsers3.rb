@@ -51,6 +51,8 @@ module VIREO
             puts "  PERM ADDR ID " + perm_address_id.to_s
             puts "PA " + row['permanentemailaddress'].to_s
             puts "ROW " + row.to_s
+            firstname = row['firstname']
+            lastname = row['lastname']
             permanent_email = row['permanentemailaddress']
             email = row['email']
             if(firstname!=nil)
@@ -330,13 +332,17 @@ module VIREO
           birthyear = 'null'
         end
 
-        v3role = row['role']
-        v4role = "ROLE_STUDENT";
-        if (v3role == 2)
+        if(row['role']!= nil)
+          v3role = row['role'].to_s
+        else
+          v3role = "0"
+        end
+        v4role = "ROLE_STUDENT"
+        if (v3role == "2")
           v4role = "ROLE_REVIEWER"
-        elsif (v3role == 3)
+        elsif (v3role == "3")
           v4role = "ROLE_MANAGER"
-        elsif (v3role == 4)
+        elsif (v3role == "4")
           v4role = "ROLE_ADMIN"
         end
 

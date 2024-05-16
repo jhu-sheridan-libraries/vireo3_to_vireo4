@@ -10,4 +10,4 @@ ruby MigrateActionLog6.rb > actionlog6.log
 ruby MigrateCustomActions7.rb > customactions7.log
 ruby MigrateFinal8.rb > final8.log
 
-ruby RestoreManagedConfig.rb
+#ruby RestoreManagedConfig.rb
