@@ -22,17 +22,17 @@ module VIREO
         degree_category_id = orgCat.key("Degree")
 
 #=begin
-        if (VIREO::INSTITUTION == "EXAMPLE")
-          institution_id = renameInstitution(orgCat, "Example State University")
+        if (VIREO::INSTITUTION == "JHU")
+          institution_id = renameInstitution(orgCat, "Johns  Hopkins University")
           puts "INST ID " + institution_id.to_s
 
-          college_id = createOrganization("t", "Graduate School", college_category_id, institution_id)
-          createOrgChildrenOrg(institution_id, college_id)
-          createOrgAWS(college_id)
+          #college_id = createOrganization("t", "Graduate School", college_category_id, institution_id)
+          #createOrgChildrenOrg(institution_id, college_id)
+          #createOrgAWS(college_id)
 
-          college_id = createOrganization("t", "Honors College", college_category_id, institution_id)
-          createOrgChildrenOrg(institution_id, college_id)
-          createOrgAWS(college_id)
+          #college_id = createOrganization("t", "Honors College", college_category_id, institution_id)
+          #createOrgChildrenOrg(institution_id, college_id)
+          #createOrgAWS(college_id)
 
         elsif (VIREO::INSTITUTION == "EXAMPLE2")
           institution_id = renameInstitution(orgCat, "Example Two University")
@@ -74,6 +74,10 @@ module VIREO
 
         org = {}
 #=begin
+        if (VIREO::INSTITUTION == "JHU")
+            org['organization_id'] = "1"
+        end
+
         if (VIREO::INSTITUTION == "EXAMPLE")
           # 2: Graduate School, 3:Honors College
           if (degreelevel == nil)
