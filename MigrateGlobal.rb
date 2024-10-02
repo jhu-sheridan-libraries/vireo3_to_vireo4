@@ -26,7 +26,7 @@ module VIREO
   BASE_DIR_V3 = "/mnt/ETD/vireo_data_prod/"
 
   # Destination top directory for submitted documents, licenses, and other files.
-  BASE_DIR_V4 = "/opt/vireo/data"
+  BASE_DIR_V4 = "/opt/vireo/data/"
 
   # Set to false if you want to run the migration as a test and not have it write to vireo4
   REALRUN = true

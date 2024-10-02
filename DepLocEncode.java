@@ -11,7 +11,7 @@ public class DepLocEncode {
 
 	public static void main(String argv[]){
                 //setKey("verysecretsecret");
-                setKey("9QRMirNPjAXA9p1Ljn9EKYzUQldajESZ");
+                setKey("9QRMirNPjAXA9p1Ljn9EKYzUQldajESZqA6ypMWyZWD8I2dMKbRFGYZpFgnIAj1T");
                 String encStr = convertToDatabaseColumn(argv[0]);
 		System.out.println(encStr);
 	}
