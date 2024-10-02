@@ -23,7 +23,7 @@ module VIREO
   CON_V4 = PG.connect :dbname => 'vireo4', :user => 'vireo', :password => 'vireo'
 
   # This is the directory containing the 'attachments' directory containing your vireo3 files (theses, licenses)
-  BASE_DIR_V3 = "/mnt/ETD/vireo_data_prod/"
+  BASE_DIR_V3 = "/mnt/ETD/vireo_data_prod/attachments/"
 
   # Destination top directory for submitted documents, licenses, and other files.
   BASE_DIR_V4 = "/opt/vireo/data/"
