@@ -44,7 +44,12 @@ module VIREO
 
             curr_address_id = createAddress(0, row['currentpostaladdress'])
             puts "  CURR ADDR ID " + curr_address_id.to_s
-            curr_contactinfo_id = createContactInfo(0, row['email'], row['currentphonenumber'], curr_address_id,
+            email = row['email']
+            if(email!=nil)
+              email = VIREO::CON_V4.escape_string(email)
+              email.gsub! "'","''"
+            end
+            curr_contactinfo_id = createContactInfo(0, email, row['currentphonenumber'], curr_address_id,
                                                     weaverusers_id)
             puts "  CURR CONT INFO ID " + curr_contactinfo_id.to_s
             perm_address_id = createAddress(1, row['permanentpostaladdress'])
@@ -54,18 +59,17 @@ module VIREO
             firstname = row['firstname']
             lastname = row['lastname']
             permanent_email = row['permanentemailaddress']
-            email = row['email']
             if(firstname!=nil)
               firstname = VIREO::CON_V4.escape_string(firstname)
+              firstname.gsub! "'","''"
             end
             if(lastname!=nil)
               lastname = VIREO::CON_V4.escape_string(lastname)
+              lastname.gsub! "'","''"
             end
             if(permanent_email!=nil)
               permanent_email = VIREO::CON_V4.escape_string(permanent_email)
-            end
-            if(email!=nil)
-              email = VIREO::CON_V4.escape_string(email)
+              permanent_email.gsub! "'","''"
             end
 
             perm_contactinfo_id = createContactInfo(1, permanent_email, row['permanentphonenumber'],
@@ -73,7 +77,7 @@ module VIREO
             puts "  PERM CONT INFO ID " + perm_contactinfo_id.to_s
 
 
-            createUserSettings(weaverusers_id, email, row['firstname'], row['lastname'])
+            createUserSettings(weaverusers_id, email, firstname, lastname)
             active_filter_id = createNamedSearchFilterGroup(weaverusers_id);
             weaverusers_id = updateWeaverUsers(weaverusers_id, curr_contactinfo_id, perm_contactinfo_id,
                                                active_filter_id)
@@ -364,6 +368,11 @@ module VIREO
 
         username = email
 
+        netid = row['netid']
+        if (netid == nil)
+          netid = email
+	end
+
         firstname = row['firstname']
         if (firstname != nil)
           firstname = VIREO::CON_V4.escape_string(firstname)
@@ -382,7 +391,7 @@ module VIREO
         if ((v4_weaverusersF != nil) && (v4_weaverusersF.count.to_i > 0))
           v4_id = v4_weaverusersF[0]['id'].to_i
           weaver_users_findchange = "SELECT id FROM weaver_users WHERE dtype='%s' AND id=%s AND username='%s' AND birth_year=%s AND email='%s' AND first_name='%s' AND last_name='%s' AND middle_name='%s' AND netid='%s' AND orcid='%s' AND page_size=%s AND password='%s' AND role='%s';" % [
-            dtype, wu_id.to_s, username, birthyear, email, firstname, lastname, middlename, row['netid'], orcid, page_size.to_s, pwdh, v4role
+            dtype, wu_id.to_s, username, birthyear, email, firstname, lastname, middlename, netid, orcid, page_size.to_s, pwdh, v4role
           ]
           weaver_users_findchange.gsub!("birth_year=null", "birth_year IS NULL")
           v4_weaverusersFC = VIREO::CON_V4.exec weaver_users_findchange
@@ -397,7 +406,7 @@ module VIREO
           weaver_id = 0
           if (VIREO::REALRUN)
             weaver_users_stmt = "INSERT INTO weaver_users (dtype,id,username,birth_year,email,first_name,last_name,middle_name,netid,orcid,page_size,password,role) VALUES('%s',%s,'%s',%s,'%s','%s','%s','%s','%s','%s',%s,'%s','%s') RETURNING id;" % [
-              dtype, wu_id.to_s, username, birthyear, email, firstname, lastname, middlename, row['netid'], orcid, page_size.to_s, pwdh, v4role
+              dtype, wu_id.to_s, username, birthyear, email, firstname, lastname, middlename, netid, orcid, page_size.to_s, pwdh, v4role
             ]
             # puts "V4 CREATING WEAVER USER "+weaver_users_stmt
             v4_weaverusersRS = VIREO::CON_V4.exec weaver_users_stmt

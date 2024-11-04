@@ -257,7 +257,7 @@ module VIREO
           insertIntoV4(row['displayorder'], row['name'], emailList)
         end
         rescue StandardError => e
-          puts "ERROR "+e.message
+          puts "ERROR listAdminGroupEmail "+e.message
         end
       end
 
