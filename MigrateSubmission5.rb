@@ -425,7 +425,8 @@ module VIREO
           end
         end
         updateSFVUtility(submission_id, "dc.title", v3row['documenttitle']);
-        updateSFVUtility(submission_id, "thesis.degree.major", v3row['major']);
+        #updateSFVUtility(submission_id, "thesis.degree.major", v3row['major']);
+        updateSFVUtility(submission_id, "thesis.degree.discipline", v3row['major']);
         updateSFVUtility(submission_id, "first_name", v3row['studentfirstname']);
         updateSFVUtility(submission_id, "last_name", v3row['studentlastname']);
         updateSFVUtility(submission_id, "middle_name", v3row['studentmiddlename']);
@@ -522,6 +523,9 @@ module VIREO
             updateSFVUtility(submission_id, "dc.contributor.advisor.Co-Chair",
                              lastname + ", " + firstname + " " + middlename)
           elsif (roles == 'Member')
+            updateSFVUtility(submission_id, "dc.contributor.committeeMember",
+                             lastname + ", " + firstname + " " + middlename)
+          elsif (roles == 'Committee Member')
             updateSFVUtility(submission_id, "dc.contributor.committeeMember",
                              lastname + ", " + firstname + " " + middlename)
           else
@@ -721,9 +725,9 @@ module VIREO
               elsif (type_string == "4")
                 fieldPredicateString = "_doctype_archived";
               elsif (type_string == "5")
-                fieldPredicateString = "_doctype_source";
-              elsif (type_string == "6")
                 fieldPredicateString = "_doctype_administrative";
+              elsif (type_string == "6")
+                fieldPredicateString = "_doctype_source";
               elsif (type_string == "7")
                 fieldPredicateString = "_doctype_feedback";
               end
