@@ -7,6 +7,12 @@ DATABASE="vireo4"
 DATE_DIR="DateFixSql"
 SCHEMA_CHANGE_DIR="428SchemaChangeSql"
 
+# Create correct hashes for files and to convert admin_groups email hashmap from v3 to v4
+javac HashMapFromHex.java
+javac hash.java
+#this is needed for encoding the deposit_location password from vireo3. Before this is compiled the secret Key must
+# be set with setKey() in main().
+javac DepLocEncode.java
 
 echo "Performing Vireo 3 to Vireo 4 migration"
 
