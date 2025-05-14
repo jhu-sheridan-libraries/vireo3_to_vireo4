@@ -21,6 +21,7 @@ echo "Performing Vireo 3 to Vireo 4 migration"
 #ruby SaveManagedConfig.rb
 
 # perform initial ruby migration scripts
+echo "Performing initial Ruby migration scripts"
 ruby MigrateInit1.rb > init1.log
 ruby MigrateOrg2.rb > org2.log
 ruby MigrateUsers3.rb > users3.log
@@ -30,11 +31,11 @@ ruby MigrateActionLog6.rb > actionlog6.log
 ruby MigrateCustomActions7.rb > customactions7.log
 ruby MigrateFinal8.rb > final8.log
 
-echo "Restoring the managed configuration table"
+#echo "Restoring the managed configuration table"
 #ruby RestoreManagedConfig.rb
 
 #perform date fix scripts - omit final_add.sql, as this action is better done in the 4.2.8 schema change scripts
-exgo "Performing the date fixes"
+echo "Performing the date fixes"
 cd ${DATE_DIR} || exit
 psql -U ${DB_USER} -d ${DATABASE} < alter_nsfg.sql
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_validators_1.sql
