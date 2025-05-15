@@ -1,7 +1,7 @@
 
-#INSERT INTO submission_list_column (id,predicate,title,input_type_id) VALUES(DEFAULT,'submission_type','Submission Type (List)',1);
-#INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) VALUES(currval('submission_list_column_id_seq'),'submissionTypes',0);
-#INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) VALUES(currval('submission_list_column_id_seq'),'name',1);
+--INSERT INTO submission_list_column (id,predicate,title,input_type_id) VALUES(DEFAULT,'submission_type','Submission Type (List)',1);
+--INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) VALUES(currval('submission_list_column_id_seq'),'submissionTypes',0);
+--INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) VALUES(currval('submission_list_column_id_seq'),'name',1);
 DO $$
   DECLARE
     LE_id int;
@@ -19,5 +19,5 @@ BEGIN
   END IF;
 END$$;
 
-#INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) (LE_id,'submissionTypes',0) ON CONFLICT (submission_list_column_id,value_path_order) DO NOTHING;
-#INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) (LE_id,'name',1 FROM submission_list_column) ON CONFLICT (submission_list_column_id,value_path_order) DO NOTHING;
+--INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) (LE_id,'submissionTypes',0) ON CONFLICT (submission_list_column_id,value_path_order) DO NOTHING;
+--INSERT INTO submission_list_column_value_path (submission_list_column_id,value_path,value_path_order) (LE_id,'name',1 FROM submission_list_column) ON CONFLICT (submission_list_column_id,value_path_order) DO NOTHING;

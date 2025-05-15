@@ -18,27 +18,35 @@ echo "Performing Vireo 3 to Vireo 4 migration"
 
 # the original Ruby migration process in run.script
 # echo "Saving the managed configuration table"
-# ruby SaveManagedConfig.rb
+# ruby SaveManagedConfig.rb - this is done in prepare.sh
 
 # perform initial ruby migration scripts
 echo "Performing initial Ruby migration scripts"
+echo "Initial migration"
 ruby MigrateInit1.rb > init1.log
+echo "Migrating organization"
 ruby MigrateOrg2.rb > org2.log
+echo "Migrating users"
 ruby MigrateUsers3.rb > users3.log
+echo "Migrating vocabulary"
 ruby MigrateVocabularyWord4.rb > vocab4.log
+echo "Migrating submissions (this will take a while)"
 ruby MigrateSubmission5.rb > submission5.log
+echo "Migrating action log"
 ruby MigrateActionLog6.rb > actionlog6.log
+echo "Migrating custom actions"
 ruby MigrateCustomActions7.rb > customactions7.log
+echo "Final migration"
 ruby MigrateFinal8.rb > final8.log
 echo "Ruby scripts complete"
 
-# echo "Restoring the managed configuration table"
-# ruby RestoreManagedConfig.rb
+echo "Restoring the managed configuration table"
+ruby RestoreManagedConfig.rb
 
 # perform date fix scripts - omit final_add.sql, as this action is better done in the 4.2.8 schema change scripts
 echo "Performing the date fixes"
 cd ${DATE_DIR} || exit
-psql -U ${DB_USER} -d ${DATABASE} < alter_nsfg.sql
+# psql -U ${DB_USER} -d ${DATABASE} < alter_nsfg.sql
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_validators_1.sql
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_baddata_2.sql
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_gradsem_3.sql
@@ -61,4 +69,8 @@ psql -U ${DB_USER} -d ${DATABASE} < 428_submission_list_column_studentname_6.sql
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_list_column_lastevent_7.sql
 echo "Schema changes complete"
 cd ..
+
+# post processing
+psql -U ${DB_USER} -d ${DATABASE} < post-process.sql
+
 echo "Migration complete!"

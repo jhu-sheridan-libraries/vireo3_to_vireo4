@@ -1,4 +1,4 @@
-#UNKNOWN IN 4.2.8
+--UNKNOWN IN 4.2.8
 DO $$
 DECLARE
     v_constraint_name TEXT;
