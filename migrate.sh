@@ -44,28 +44,43 @@ echo "Restoring the managed configuration table"
 ruby RestoreManagedConfig.rb
 
 # perform date fix scripts - omit final_add.sql, as this action is better done in the 4.2.8 schema change scripts
+echo
 echo "Performing the date fixes"
 cd ${DATE_DIR} || exit
 # psql -U ${DB_USER} -d ${DATABASE} < alter_nsfg.sql
+echo "Performing the graduation date validator fixes"
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_validators_1.sql
+echo "Performing the graduation date data fixes"
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_baddata_2.sql
+echo "Performing the graduation date semester fixes"
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_gradsem_3.sql
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_gradsem_4.sql
+echo "Performing the defense date fixes"
 psql -U ${DB_USER} -d ${DATABASE} < defenseDate_migrate_5.sql
-# final_add.sql
+echo "Performing the final date fixes"
+psql -U ${DB_USER} -d ${DATABASE} < final_add.sql
 echo "Date fixes complete"
 cd ..
 
+echo
 echo "Performing the 4.2.8 schema changes"
 # perform 4.2.8 schema change scripts
 cd ${SCHEMA_CHANGE_DIR} || exit
+echo "Performing the submission action log column changes (0)"
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_action_log_column_0.sql
+echo "Performing the submission list column constraints changes (1)"
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_list_column_constraints_1.sql
+echo "Performing the submission list column data changes (2) changes"
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_action_log_column_data_2.sql
+echo "Performing the managed configuration changes (3) changes"
 psql -U ${DB_USER} -d ${DATABASE} < 428_managed_configuration_lowercase_update_3.sql
+echo "Performing the submission list column graduationsemester changes (4) changes"
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_list_column_graduationsemester_list_4.sql
+echo "Performing the submission list column submissiontype_list changes (5) changes"
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_list_column_submissiontype_list_5.sql
+echo "Performing the submission list column studentname  changes (6) changes"
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_list_column_studentname_6.sql
+echo "Performing the submission list column lastevent changes (7) changes"
 psql -U ${DB_USER} -d ${DATABASE} < 428_submission_list_column_lastevent_7.sql
 echo "Schema changes complete"
 cd ..
