@@ -62,8 +62,8 @@ psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_gradsem_3.sql
 psql -U ${DB_USER} -d ${DATABASE} < graduationDate_migrate_gradsem_4.sql
 echo "Performing the defense date fixes"
 psql -U ${DB_USER} -d ${DATABASE} < defenseDate_migrate_5.sql
-echo "Performing the final date fixes"
-psql -U ${DB_USER} -d ${DATABASE} < final_add.sql
+#echo "Performing the final date fixes"
+#psql -U ${DB_USER} -d ${DATABASE} < final_add.sql
 echo "Date fixes complete"
 cd ..
 
