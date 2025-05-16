@@ -18,7 +18,7 @@ echo
 echo "Performing Vireo 3 to Vireo 4 migration"
 echo -n "Starting at "
 date -d "now" +"%H:%M"
-echo -n "The entire process will take about 90 minutes, should be done around "
+echo -n "The entire process will take about 78 minutes, should be done around "
 date -d "now + 90 minutes" +"%H:%M"
 echo
 
@@ -28,18 +28,18 @@ echo
 
 # perform initial ruby migration scripts
 echo "Performing initial Ruby migration scripts"
-echo "This part of the migration should take about 80 minutes."
+echo "This part of the migration should take about 78 minutes."
 echo "Initial migration"
 ruby MigrateInit1.rb > init1.log
 echo "Migrating organization"
 ruby MigrateOrg2.rb > org2.log
-echo "Migrating users"
+echo "Migrating users (takes about 2 minutes)"
 ruby MigrateUsers3.rb > users3.log
-echo "Migrating vocabulary"
+echo "Migrating vocabulary (takes about 2 minutes)"
 ruby MigrateVocabularyWord4.rb > vocab4.log
-echo "Migrating submissions (this will take a little over 70 minutes)"
+echo "Migrating submissions (takes about 72 minutes)"
 ruby MigrateSubmission5.rb > submission5.log
-echo "Migrating action log"
+echo "Migrating action log (takes about 4 minutes)"
 ruby MigrateActionLog6.rb > actionlog6.log
 echo "Migrating custom actions"
 ruby MigrateCustomActions7.rb > customactions7.log
@@ -99,3 +99,5 @@ psql -U ${DB_USER} -d ${DATABASE} < post-process.sql
 echo
 echo -n "Migration complete at "
 date -d "now" +"%H:%M"
+echo
+ls -l *.log >> migrate.log
