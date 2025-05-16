@@ -15,6 +15,8 @@ javac hash.java
 javac DepLocEncode.java
 
 echo "Performing Vireo 3 to Vireo 4 migration"
+echo -n "The entire process will take about 90 minutes, should be done around "
+date -d "now + 90 minutes" +"%H:%M"
 
 # the original Ruby migration process in run.script
 # echo "Saving the managed configuration table"
@@ -22,6 +24,7 @@ echo "Performing Vireo 3 to Vireo 4 migration"
 
 # perform initial ruby migration scripts
 echo "Performing initial Ruby migration scripts"
+echo "This part of the migration should take about 80 minutes."
 echo "Initial migration"
 ruby MigrateInit1.rb > init1.log
 echo "Migrating organization"
@@ -30,7 +33,7 @@ echo "Migrating users"
 ruby MigrateUsers3.rb > users3.log
 echo "Migrating vocabulary"
 ruby MigrateVocabularyWord4.rb > vocab4.log
-echo "Migrating submissions (this will take a while)"
+echo "Migrating submissions (this will take a little over 70 minutes)"
 ruby MigrateSubmission5.rb > submission5.log
 echo "Migrating action log"
 ruby MigrateActionLog6.rb > actionlog6.log
