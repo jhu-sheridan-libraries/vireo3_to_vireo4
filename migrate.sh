@@ -15,8 +15,10 @@ javac hash.java
 javac DepLocEncode.java
 
 echo "Performing Vireo 3 to Vireo 4 migration"
+echo -n "Starting at "
+date -d "now" + "%H:%M"
 echo -n "The entire process will take about 90 minutes, should be done around "
-date -d "now + 90 minutes" +"%H:%M"
+date -d "now + 90 minutes" + "%H:%M"
 
 # the original Ruby migration process in run.script
 # echo "Saving the managed configuration table"
@@ -91,4 +93,5 @@ cd ..
 # post processing
 psql -U ${DB_USER} -d ${DATABASE} < post-process.sql
 
-echo "Migration complete!"
+echo -n "Migration complete at "
+date -d "now" + "%H:%M"
