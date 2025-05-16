@@ -14,11 +14,13 @@ javac hash.java
 # be set with setKey() in main().
 javac DepLocEncode.java
 
+echo
 echo "Performing Vireo 3 to Vireo 4 migration"
 echo -n "Starting at "
 date -d "now" +"%H:%M"
 echo -n "The entire process will take about 90 minutes, should be done around "
-date -d "now + 90 minutes" + "%H:%M"
+date -d "now + 90 minutes" +"%H:%M"
+echo
 
 # the original Ruby migration process in run.script
 # echo "Saving the managed configuration table"
@@ -45,6 +47,7 @@ echo "Final migration"
 ruby MigrateFinal8.rb > final8.log
 echo "Ruby scripts complete"
 
+echo
 echo "Restoring the managed configuration table"
 ruby RestoreManagedConfig.rb
 
@@ -93,5 +96,6 @@ cd ..
 # post processing
 psql -U ${DB_USER} -d ${DATABASE} < post-process.sql
 
+echo
 echo -n "Migration complete at "
 date -d "now" +"%H:%M"
