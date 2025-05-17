@@ -18,8 +18,8 @@ echo
 echo "Performing Vireo 3 to Vireo 4 migration"
 echo -n "Starting at "
 date -d "now" +"%H:%M"
-echo -n "The entire process will take about 78 minutes, should be done around "
-date -d "now + 90 minutes" +"%H:%M"
+echo -n "The entire process will take about about 80 minutess, should be done around "
+date -d "now + 80 minutes" +"%H:%M"
 echo
 
 # the original Ruby migration process in run.script

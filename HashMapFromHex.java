@@ -8,8 +8,9 @@ import java.io.ObjectInputStream;
 import java.util.HashMap; 
 import java.util.Iterator; 
 import java.util.Map; 
-import java.util.Set; 
+import java.util.Set;
 
+@SuppressWarnings("unchecked")
 public class HashMapFromHex{ 
 	public static void main(String[] args) 
 	{ 
@@ -17,8 +18,8 @@ public class HashMapFromHex{
 		HashMap<Integer, String> newHashMap = null; 
 		try { 
 			FileInputStream fileInput = new FileInputStream("./"+paramOne);
-			ObjectInputStream objectInput = new ObjectInputStream(fileInput); 
-			newHashMap = (HashMap)objectInput.readObject(); 
+			ObjectInputStream objectInput = new ObjectInputStream(fileInput);
+			newHashMap = (HashMap)objectInput.readObject();
 			objectInput.close(); 
 			fileInput.close(); 
 		} catch (IOException obj1) { 
