@@ -23,7 +23,7 @@ module VIREO
 
 #=begin
         if (VIREO::INSTITUTION == "JHU")
-          institution_id = renameInstitution(orgCat, "Johns  Hopkins University")
+          institution_id = renameInstitution(orgCat, "Johns Hopkins University")
           puts "INST ID " + institution_id.to_s
 
           #college_id = createOrganization("t", "Graduate School", college_category_id, institution_id)
