@@ -9,7 +9,7 @@ In addition to the original Ruby scripts for this migration, there are two sets 
 handling of dates in the database, and another to accommodate a schema change introduced in v4.2.8. These are run after
 the Ruby scripts. All of this is handled in the migrate.sh script.
 
-We have been done a lot of localization for JHU on a development Vireo 4 instance. This contains some changes to the 
+We have done a lot of localization for JHU on a development Vireo 4 instance. This contains some changes to the 
 managed_configuration in the Vireo4 database, which we must save as described in the README, and restore after the Vireo
 4 database is generated.
 
@@ -26,7 +26,8 @@ for JHU, but instead are using just the university as a single organizational le
 form and workflow.
 
 To prepare for the migration then, we clone the [Sheridan Libraries fork of vireo3_to_vireo4](https://github.com/jhu-sheridan-libraries/vireo3_to_vireo4) 
-and check out the JHU branch. After verifying that the details are correct, we then run the migrate.sh script there.
+and check out the JHU branch. After verifying that the details are correct, we first run the prepare.sh script, start 
+the Vireo 4 instance, and then run the migrate.sh script there.
 
 The idea is that we will (hopefully) end up with a Vireo 4 database and a directory of assets. The pkan is to dump the database
 so that it can be pushed up to our database server, and to package the assets to be stored in their location as specified in the Vireo 4
